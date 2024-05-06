@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.2.0</version>
+		<relativePath />
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>demoai</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>demoai</name>
+	<description>Demo project for Spring Boot</description>
+	<properties>
+		<java.version>17</java.version>
+		<version.lib.ojdbc>23.4.0.0</version.lib.ojdbc>
+		<spring-ai.version>0.8.0-SNAPSHOT</spring-ai.version>
+	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.ai</groupId>
+				<artifactId>spring-ai-bom</artifactId>
+				<version>0.8.0-SNAPSHOT</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!--
+			<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-openai</artifactId>
+			<version>0.8.0-SNAPSHOT</version>
+		</dependency>
+	    -->
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+			<version>0.8.0-SNAPSHOT</version>
+		</dependency>
+	<!--//CHANGE-->	
+	<!-- Ollama for embeddings/chat 
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-ollama-spring-boot-starter</artifactId>
+		 </dependency>
+	-->
+	<!-- Oracle DBMS -->
+	<!-- https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc11 -->
+	<dependency>
+		<groupId>com.oracle.database.jdbc</groupId>
+		<artifactId>ojdbc11</artifactId>
+		<version>23.4.0.24.05</version>
+	</dependency>
+
+	<!-- Oracle DBMS END -->
+	<dependency>
+		<groupId>jakarta.json.bind</groupId>
+		<artifactId>jakarta.json.bind-api</artifactId>
+		<version>3.0.0</version>
+	</dependency>
+	<dependency>
+		<groupId>org.eclipse</groupId>
+		<artifactId>yasson</artifactId>
+		<version>3.0.3</version>
+	</dependency>
+	
+	<dependency>
+		<groupId>org.springframework.ai</groupId>
+		<artifactId>spring-ai-pdf-document-reader</artifactId>
+		<version>${spring-ai.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.springframework.ai</groupId>
+		<artifactId>spring-ai-tika-document-reader</artifactId>
+		<version>${spring-ai.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-jdbc</artifactId>
+	</dependency>
+
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+	<repositories>
+		<repository>
+			<id>spring-snapshots</id>
+			<name>Spring Snapshots</name>
+			<url>https://repo.spring.io/snapshot</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+	</repositories>
+</project>
