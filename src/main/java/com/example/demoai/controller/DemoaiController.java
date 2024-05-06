@@ -203,7 +203,7 @@ public class DemoaiController {
     }
 
     /**
-     * Store a pdf file in Oracle Vector DB 23ai
+     * Store a Json Duality view as documents: EXPERIMENTAL - NOT FULLY TESTED
      * 
      * @param view the name of Json-Duality view already created in the DB
      * @return success/fail message

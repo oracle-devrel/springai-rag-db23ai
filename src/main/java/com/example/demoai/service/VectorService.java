@@ -30,8 +30,10 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.ExtractedTextFormatter;
 import org.springframework.ai.reader.JsonReader;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
+import org.springframework.ai.reader.pdf.ParagraphPdfDocumentReader;
 import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -95,7 +97,8 @@ public class VectorService {
     public VectorStore getVectorStore() {
         return vectorStore;
     }
-
+    
+    //EXPERIMENTAL - NOT FULLY TESTED
     public Boolean putJsonView(String jsonView) {
 
         String sqlStatement = "select DATA from " + jsonView;
@@ -148,8 +151,12 @@ public class VectorService {
 
         String START = "\n<article>\n";
         String STOP = "\n</article>\n";
+        
+        List<Document> similarDocuments = this.vectorStore.similaritySearch( 
+            SearchRequest.
+               query(question).
+               withTopK(4));
 
-        List<Document> similarDocuments = this.vectorStore.similaritySearch(question);
         Iterator<Document> iterator = similarDocuments.iterator();
         StringBuilder context = new StringBuilder();
         while (iterator.hasNext()) {
