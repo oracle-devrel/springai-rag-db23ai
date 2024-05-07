@@ -53,8 +53,8 @@
 			<artifactId>spring-ai-openai-spring-boot-starter</artifactId>
 			<version>0.8.0-SNAPSHOT</version>
 		</dependency>
-	<!--//CHANGE-->	
-	<!-- Ollama for embeddings/chat 
+	<!--//CHANGE-->
+	<!-- Ollama for embeddings/chat
 		<dependency>
 			<groupId>org.springframework.ai</groupId>
 			<artifactId>spring-ai-ollama-spring-boot-starter</artifactId>

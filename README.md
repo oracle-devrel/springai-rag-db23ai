@@ -21,11 +21,16 @@ The demo shows a Retrieval-Augmented Generation using the following modules:
     * OLLAMA local LLM embeddings model
     * OLLAMA local LLM LLama2 model for chat
 
-## Description
+## Introduction
 
-This demo is based on a early draft example of **Spring AI API** implementation for the **Oracle 23ai** as vector store, according to the specifications reported here: **[Vector DBs](https://docs.spring.io/spring-ai/reference/api/vectordbs.html)**.
+This demo is based on a early draft example of **Spring AI API**'s implementation for the **Oracle 23ai** as vector store, according to the specifications reported here: **[Vector DBs](https://docs.spring.io/spring-ai/reference/api/vectordbs.html)**.
 
-The interface, that must be implemented to use Oracle 23ai as a Vector Store in a Spring AI pipeline, is the following:
+There are two different types of files that contribute to the Retrieval-Augmented Generation (RAG) system in this solution:
+
+- **PDF** file is split in chunks and stored as text with vector embeddings.
+- **JSON** docs are created exploiting the **JSON-Duality** capability on existing tables
+
+The interface, that uses Oracle Database 23ai as a Vector Store in a Spring AI pipeline, is the following:
 
     ```java
     public interface VectorStore {
@@ -40,7 +45,7 @@ The interface, that must be implemented to use Oracle 23ai as a Vector Store in 
     }
     ```
 
-which addresses the uploading of documents into a generic Vector DB augmenting with related vector embeddings, and it allows searching for similar documents using the vector distance chosen. All interfaces have been implemented except the `similaritySearch(String query)`, since in the interface it already uses the `similaritySearch(SearchRequest request)` as shown here:
+These operations allow uploading documents into a vector database, searching for similar documents using the specific vector distance algorithm chosen (you can change this in the `.properties` files). 
 
     ```java
     default List<Document> similaritySearch(String query) {
@@ -48,9 +53,9 @@ which addresses the uploading of documents into a generic Vector DB augmenting w
         }
     ```
 
-The file `src/main/java/com/example/demoai/OracleDBVectorStore.java` holds the implementation.
+The file `src/main/java/com/example/demoai/OracleDBVectorStore.java` holds this implementation.
 
-The Vector Store implementation for the Oracle DB 23ai saves the data in this **VECTORTABLE**:
+The Vector Store saves the data in this **VECTORTABLE**:
 
     ```sql
     CREATE TABLE VECTORTAB (
@@ -62,7 +67,7 @@ The Vector Store implementation for the Oracle DB 23ai saves the data in this **
         );
     ```
 
-The **id** will be based on an generated **Identity** Column key, but you can change it easly in the implementation.
+The **id** will be based on an generated **Identity** Column key, but this can be changed if you prefer.
 
 The metadata content depends on what's coming from Document object, and in this case it will hold the following data:
 
@@ -73,57 +78,54 @@ The metadata content depends on what's coming from Document object, and in this 
     }
     ```
 
-This table is created at each application startup by default but, configuring the `config.dropDb` parameter to `false` in the `application-dev.properties` you can cumulate at each startup, in the same vector tab, several documents to increase your knowledge base on which run your search.
+This table is created at each application startup by default but, by configuring the `config.dropDb` parameter to `false` in  `application-dev.properties`, you can accumulate data every time you start up the application startup, in the same vector tab, and these documents will increase the vector database's knowledge base.
 
-In terms of source documents on which run Retrieval-Augmented Generation, i this demo are shown two different type:
+## Docs
 
-- **PDF** file splitted in chuncks and stored with vector embeddings
-- **JSON** docs created exploiting **JSON-Duality** on existing tables
-
-In term of endpoint services, that you can see in the [DemoaiController.java](src/main/java/com/example/demoai/controller/DemoaiController.java), the following main REST services have been implemented:
+With regards to endpoint services, you can find the implementation in [DemoaiController.java](src/main/java/com/example/demoai/controller/DemoaiController.java). The following main REST services have been implemented:
 
 - **/store**
 
-    Accepts a PDF doc to be chuncked, created vector embeddings, stored in the **VECTORTABLE**.
+    Accepts a PDF doc to be chunked, vector embeddings are created and stored in the **VECTORTABLE**.
 
 - **/store-json**
 
-    Providing the name of a **relational duality view** created on the DB, this service create for each json record a vector embeddings and store it as a common chunks in the **VECTORTABLE**. This service show as you can involve in the RAG, not only unstructered text data coming from documents, but also existing table that will queried in natural language as JSON view.
+    Providing the name of a **relational duality view** created on the DB, this service creates, for each JSON record, a vector embedding, chunks it, and stores it in the **VECTORTABLE**. This service shows that you can put both structured and unstructured text data into the RAG, and you'll be able to query this data in natural language as querying a JSON document.
 
 - **/rag**
-    Providing a query in natural language, it will be managed in a Retrieval-Augmented Generation pipeline that will use the content of **VECTORTABLE**, adding the most similar chunks to the question to the context and sending everything using a template in the file: [prompt-template.txt](src/main/resources/prompt-template.txt)
+    Providing a query in natural language, it manages in a Retrieval-Augmented Generation pipeline that uses the content of **VECTORTABLE**, adding the most similar chunks to the question to the context and sending everything using a template in the file: [prompt-template.txt](src/main/resources/prompt-template.txt)
 
-As test only have been also implemented:
+The following tests have also been implemented, to debug and play with the solution if you're really interested:
 
 - **/search-similar**
 
-    Return a list of the nearest chuncks to the message provided that are stored in the **VECTORTABLE**. It's useful to get info about the context used to determine the prompt sent to the LLM for the completion process and use as references to provide a response.
+    Returns a list of the nearest chunks to the message provided stored in the **VECTORTABLE**. This means, you can check the "closest matches" in your vector database. It's useful to get info about the context used to determine the prompt sent to the LLM for the completion process and use as references to provide a response.
 
 - **/delete**
 
-    remove from **VECTORTABLE** a list of chunks identified by their IDs
+    Allows you to remove a list of chunks, identified by their IDs, from **VECTORTABLE**.
 
 - **/embedding**
 
-    Provide a vector embeddings based on the input string
+    Provide, given an input string, its corresponding generated vector embedding.
 
 - **/generate**
 
-    Chat client that doesn't use the RAG pipeline. It could be used as a baseline to show the differences between a response provided by the LLM service as-is (OpenAI, OLLAMA) and an augmented request. It's useful to check if a public content has been used for LLM training, if the response is near what do you expect, without providing your documents.
+    Chat client that doesn't use the RAG pipeline. It could be used as a baseline to show the differences between a response provided by the LLM service as-is (OpenAI, OLLAMA) and an augmented request. It's useful to check if any public content has been used for LLM training, whether the response is near to what you expect, without providing your documents.
 
-### Prerequisites and setup
+## 0. Prerequisites and setup
 
-#### JDBC driver for Oracle DB 23ai
+### JDBC driver for Oracle DB 23ai
 
-This demo works with the latest `ojdbc11.jar` driver related to the Oracle DBMS 23.4.0.0. To run this project, download this driver from Oracle site or directly from your DB server, looking in the directory: `$ORACLE_HOME/jdbc/lib/ojdbc11.jar`. After downloading in your local home dir, import as local MVN artifact with this command:
+This demo works with the latest `ojdbc11.jar` driver related to the Oracle DBMS (23.4). To run this project, download this driver from Oracle site or directly from your DB server, looking in the directory: `$ORACLE_HOME/jdbc/lib/ojdbc11.jar`. After downloading in your local home dir, import it as a local Maven artifact with this command:
 
     ```bash
     mvn install:install-file -Dfile=<HOME_DIR>/ojdbc11.jar -DgroupId=com.oracle.database.jdbc -DartifactId=ojdbc11 -Dversion=23.4.0.0 -Dpackaging=jar -DgeneratePom=true
     ```
 
-#### Environment variables
+### Environment variables
 
-Set in the environment variables in a `env.sh` file with this content, according your server IPs:
+Set the correct environment variables in a `env.sh` (or put these directly into `/home/$USER/.bashrc`) file with this content, according your server IPs (if you're planning on deploying with oLLaMA):
 
     ```bash
     export OPENAI_URL=https://api.openai.com
@@ -140,11 +142,11 @@ Set in the environment variables in a `env.sh` file with this content, according
     #export OPENAI_MODEL=NousResearch--llama-2-7b-chat-hf
     ```
 
-To invoke both OpenAI `gpt-3.5-turbo` and `text-embedding-ada-002` you need an `YOUR_OPENAI_KEY` that it must relesead by the [Open AI developer platform](https://platform.openai.com/).
+To invoke both OpenAI `gpt-3.5-turbo` and `text-embedding-ada-002`, you'll also need your `YOUR_OPENAI_KEY`, which must be obtained directly from the [Open AI developer platform](https://platform.openai.com/).
 
 About the OLLAMA_EMBEDDINGS/MODEL used, you are free for your experiment to go on the [OLLAMA Library](https://ollama.com/library) and choose other models.
 
-As you can see, you can configure also the `OPENAI_URL`, that help to target an OpenAI LLM providers compatible with the OpenAI APIs. In this way you can switch easly to other providers, even private. In this current release hasn't been implemented, but in future maybe.
+As you can see, you can configure also the `OPENAI_URL`, which helps to invoke OpenAI LLMs providers compatible with the OpenAI APIs. This way, you can switch easly to other providers, even private ones.
 
 Set env with command in a shell:
 
@@ -154,99 +156,47 @@ Set env with command in a shell:
 
 #### DB23ai setup
 
-Follow setup instruction in doc [TBD]:
+Download and install from [Oracle Database Free Get Started](https://www.oracle.com/database/free/get-started/) site an **Oracle Database 23ai Free**, for example, as a docker container in this way:
 
+```bash
+docker run -d -p 1521:1521 --name db23ai container-registry.oracle.com/database/free:latest
+docker exec db23ai ./setPassword.sh manager
 ```
-Oracle 23ai Getting Started
+
+After startup, download and install an Oracle Instant Client from the same [site](https://www.oracle.com/database/free/get-started/), and connect to the instance as shown here:
+
+```bash
+sqlplus sys/manager@"${VECTORDB}:1521/FREEPDB1" as sysdba
 ```
 
-For JSON-Duality search, create the following table/view according the [oracle-base example](https://oracle-base.com/articles/23c/json-relational-duality-views-23c). As user **vector/vector**:
+If running locally:
 
-    ```sql
-    drop table if exists emp purge;
-    drop table if exists dept purge;
+```bash
+sqlplus sys/manager@"localhost:1521/FREEPDB1" as sysdba
+```
 
-    create table dept (
-    deptno number(2) constraint pk_dept primary key,
-    dname varchar2(14),
-    loc varchar2(13)
-    ) ;
+to create a **vector** user to run the example:
 
-    create table emp (
-    empno number(4) constraint pk_emp primary key,
-    ename varchar2(10),
-    job varchar2(9),
-    mgr number(4),
-    hiredate date,
-    sal number(7,2),
-    comm number(7,2),
-    deptno number(2) constraint fk_deptno references dept
-    );
+```bash
+create user vector identified by "vector";
+grant connect to vector;
+grant resource to vector;
+alter user vector default role connect, resource;
+alter user vector quota unlimited on users;
+```
 
-    create index emp_dept_fk_i on emp(deptno);
+Once we've created the user, we'll be able to use it in our Spring AI application by modifying `application-dev.properties`.
 
-    insert into dept values (10,'ACCOUNTING','NEW YORK');
-    insert into dept values (20,'RESEARCH','DALLAS');
-    insert into dept values (30,'SALES','CHICAGO');
-    insert into dept values (40,'OPERATIONS','BOSTON');
+If running locally:
 
-    insert into emp values (7369,'SMITH','CLERK',7902,to_date('17-12-1980','dd-mm-yyyy'),800,null,20);
-    insert into emp values (7499,'ALLEN','SALESMAN',7698,to_date('20-2-1981','dd-mm-yyyy'),1600,300,30);
-    insert into emp values (7521,'WARD','SALESMAN',7698,to_date('22-2-1981','dd-mm-yyyy'),1250,500,30);
-    insert into emp values (7566,'JONES','MANAGER',7839,to_date('2-4-1981','dd-mm-yyyy'),2975,null,20);
-    insert into emp values (7654,'MARTIN','SALESMAN',7698,to_date('28-9-1981','dd-mm-yyyy'),1250,1400,30);
-    insert into emp values (7698,'BLAKE','MANAGER',7839,to_date('1-5-1981','dd-mm-yyyy'),2850,null,30);
-    insert into emp values (7782,'CLARK','MANAGER',7839,to_date('9-6-1981','dd-mm-yyyy'),2450,null,10);
-    insert into emp values (7788,'SCOTT','ANALYST',7566,to_date('13-JUL-87','dd-mm-rr')-85,3000,null,20);
-    insert into emp values (7839,'KING','PRESIDENT',null,to_date('17-11-1981','dd-mm-yyyy'),5000,null,10);
-    insert into emp values (7844,'TURNER','SALESMAN',7698,to_date('8-9-1981','dd-mm-yyyy'),1500,0,30);
-    insert into emp values (7876,'ADAMS','CLERK',7788,to_date('13-JUL-87', 'dd-mm-rr')-51,1100,null,20);
-    insert into emp values (7900,'JAMES','CLERK',7698,to_date('3-12-1981','dd-mm-yyyy'),950,null,30);
-    insert into emp values (7902,'FORD','ANALYST',7566,to_date('3-12-1981','dd-mm-yyyy'),3000,null,20);
-    insert into emp values (7934,'MILLER','CLERK',7782,to_date('23-1-1982','dd-mm-yyyy'),1300,null,10);
-    commit;
-    ```
+```bash
+sqlplus vector/vector@"localhost:1521/FREEPDB1" as sysdba
+```
 
-Create a JSON-Duality view:
-
-    ```sql
-    create or replace json relational duality view department_dv as
-    select json {
-                '_id' : d.deptno,
-                'departmentName'   : d.dname,
-                'location'         : d.loc,
-                'employees' :
-                [ select json {'employeeNumber' : e.empno,
-                                'employeeName'   : e.ename,
-                                'job'            : e.job,
-                                'salary'         : e.sal}
-                    from   emp e with insert update delete
-                    where  d.deptno = e.deptno ]}
-    from dept d with insert update delete;
-    ```
-
-You can do using a script [json-dual](json-dual.sql), running in a shell:
-
-    ```bash
-    sqlplus vector/vector@"${VECTORDB}:1521/ORCLPDB1"  @"/Users/cdebari/Documents/GitHub/spring-ai-demo/json-dual.sql"
-    ```
-
-Let's check the content by connecting to the Oracle DB:
+We can check the content by connecting to the Oracle DB:
 
     ```bash
     sqlplus vector/vector@"${VECTORDB}:1521/ORCLPDB1"
-    ```
-
-And executing the following command, to pull the data using JSON duality:
-
-    ```sql
-    select json_serialize(d.data pretty) from department_dv d FETCH FIRST ROW ONLY;
-    ```
-
-Or directly from the `department_dv` table:
-
-    ```sql
-    select * from department_dv;
     ```
 
 ### Application
@@ -274,7 +224,7 @@ In the `application-dev.properties` files will be used the environment variables
     spring.ai.ollama.chat.options.model=${OLLAMA_MODEL}
     ```
 
-In the `application.properties` check if the default env is set as `dev`:
+In `application.properties`, check if the default env is set as `dev`:
 
     ```properties
     spring.profiles.active=dev
@@ -395,7 +345,7 @@ Output from the command:
 
 ### Search on data coming from a PDF stored
 
-Store a PDF document in the DBMC 23c library: [**Oracle® Database: Get Started with Java Development**](https://docs.oracle.com/en/database/oracle/oracle-database/23/tdpjd/get-started-java-development.pdf) in the Oracle DB 23ai with embeddings coming from OpenAI Embedding service. Dowload locally, and run in a shell:
+Store a PDF document in the DBMC 23c library: [**Oracle® Database: Get Started with Java Development**](https://docs.oracle.com/en/database/oracle/oracle-database/23/tdpjd/get-started-java-development.pdf) in the Oracle DB 23ai with embeddings coming from the OpenAI Embedding service. Dowload locally, and run in a shell:
 
     ```bash
     curl -X POST -F "file=@./docs/get-started-java-development.pdf" http://localhost:8080/ai/store
@@ -489,76 +439,21 @@ Then, we test the deletion. Indexes begin counting at `1`, so let's execute the 
     curl "http://localhost:8080/ai/delete?id=1&id=5&id=4"
     ```
 
-### JSON Duality semantic search example
+## 2. Running generations and chat with private LLMs through OLLAMA
 
-1. First, we need to check whether `config.dropDb=true` is present in `application.properties`. This ensures that we drop all data from the database after every execution of our project, to ensure that we can test our endpoints without worrying about data retention -yet-. After we've set that, we restart the Maven project:
+We'll need to create an OCI Compute instance and install OLLAMA inside. Then, we will expose the server through an Internet Gateway and allow our Spring AI application connect to the OLLAMA server and make the equivalent requests as with OpenAI generations.
 
-    ```bash
-    mvn spring-boot:run
-    ```
+The following shape and images are recommended for the server: (it will require a GPU, as we'll be running an HPC load that will require lots of computing! More than the CPU can handle at this moment without quantization enabled.)
 
-2. First, store the **DEPARTMENT_DV** JSON Duality view as bunch of embeddings:
+- Shape: `VM.GPU.A10.2` (2x NVIDIA A10 Tensor Cores)
+- OCPU: 30
+- GPU Memory: 48GB
+- CPU Memory: 480GB
+- Storage: >250GB
+- Max Network Bandwidth: 48Gbps (6GBps)
+- Image: Oracle Linux 8.9
 
-    ```bash
-    curl "http://localhost:8080/ai/store-json?view=DEPARTMENT_DV"
-    ```
-
-3. Let's ask simple queries:
-
-    ```bash
-    curl -X POST http://localhost:8080/ai/rag \
-    -H "Content-Type: application/json" \
-    -d '{"message":"Give me the list of names who work in the New York City department"}' | jq -r .generation
-    ```
-
-Response:
-
-    ```json
-    {
-        "generation": "CLARK, KING, MILLER"
-    }
-    ```
-
-Here's another example:
-
-    ```bash
-    curl -X POST http://localhost:8080/ai/rag \
-    -H "Content-Type: application/json" \
-    -d '{"message":"who has the largest salary among salesman and in which department he works? "}' | jq -r .generation
-    ```
-
-Response:
-
-    ```text
-    The salesman with the largest salary is ALLEN with a salary of 1600. He works in the SALES department located in CHICAGO.
-    ```
-
-Here's with a more complex question:
-
-    ```bash
-    curl -X POST http://localhost:8080/ai/rag \
-    -H "Content-Type: application/json" \
-    -d '{"message":"Give me the total of salaries of employees in the New York department"}' | jq -r .generation
-    ```
-
-This should return something similar to:
-
-    ```text
-    To calculate the total of salaries of employees in the New York department, we need to look at the first article which contains information about the ACCOUNTING department located in NEW YORK. The salaries of the employees in this department are as follows:
-    - CLARK (MANAGER): $2450
-    - KING (PRESIDENT): $5000
-    - MILLER (CLERK): $1300
-
-    Total of salaries in the New York department = $2450 + $5000 + $1300 = $8750
-
-    Therefore, the total of salaries of employees in the New York department is $8750.
-    ```
-
-## 2. Runs with a private LLMs through OLLAMA
-
-### OLLAMA setup
-
-1. from OCI console, choose Compute/Instances menu:
+1. From OCI console, choose Compute/Instances menu:
 
     ![image](./img/instance.png)
 
@@ -566,15 +461,15 @@ This should return something similar to:
 
     ![image](./img/create.png)
 
-3. Choose **VM.GPU.A10.2** shape, selecting **Virtual machine**/**Specialty and previous generation**:
+3. Choose `VM.GPU.A10.2` shape, selecting **Virtual machine**/**Specialty and previous generation**:
 
     ![image](./img/shape.png)
 
-4. Choose the Image **Oracle-Linux-8.9-Gen2-GPU-2024.02.26-0** from Oracle Linux 8 list of images:
+4. Choose the Image `Oracle-Linux-8.9-Gen2-GPU-2024.02.26-0` from Oracle Linux 8 list of images:
 
     ![image](./img/image.png)
 
-5. **Specify a custom boot volume size** and set 100 GB:
+5. Specify a custom boot volume size and set 100 GB:
 
     ![image](./img/bootvolume.png)
 
@@ -623,7 +518,7 @@ This should return something similar to:
     exit
     ```
 
-12. Final installation
+12. We finalize our installation by executing:
 
     ```bash
     sudo yum install -y nvidia-container-toolkit
@@ -632,20 +527,32 @@ This should return something similar to:
     nvidia-ctk runtime configure --runtime=docker --config=$HOME/.config/docker/daemon.json
     ```
 
-13. Re-connect to the VM, and run again:
+13. If you're on Ubuntu instead, run:
 
     ```bash
-    `sudo su - docker_user`
+    sudo apt-get install nvidia-container-toolkit=1.14.3-1 \
+        nvidia-container-toolkit-base=1.14.3-1 \
+        libnvidia-container-tools=1.14.3-1 \
+        libnvidia-container1=1.14.3-1
+    sudo apt-get install -y nvidia-docker2
+    ```
+
+13. Let's reboot and re-connect to the VM, and run again:
+
+    ```bash
+    sudo reboot now
+    # after restart, run:
+    sudo su - docker_user
     ```
 
 14. Run `docker` to check if everything it's ok.
 
-15. Let's run a Docker container with the  `ollama/llama2` model for embeddings/completion:
+15. Let's run a Docker container with the `ollama/llama2` model for embeddings/completion:
 
     ```bash
     docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama serve
     docker exec -it ollama ollama pull nomic-embed-text
-    docker exec -it ollama ollama pull llama2:13b-chat-fp16
+    docker exec -it ollama ollama pull llama2:7b-chat-fp16
     docker logs -f --tail 10 ollama
     ```
 
@@ -667,11 +574,11 @@ To handle the firewall, we need to open port `11434` on our Security List. For t
 
     ![security](./img/addIngress.png)
 
-5. lick on the **Add Ingress Rules** button:
+5. Click on the **Add Ingress Rules** button:
 
     ![security](./img/addIngress.png)
 
-6. nsert details as shown in the following image and then click **Add Ingress Rules** button:
+6. Insert details as shown in the following image and then click **Add Ingress Rules** button:
 
     ![security](./img/rule.png)
 
@@ -700,6 +607,8 @@ To handle the firewall, we need to open port `11434` on our Security List. For t
         "prompt":"Why is the sky blue?"
     }'
     ```
+
+You'll receive the response in continuous sequential responses, facilitating the delivery of the content little by little, instead of forcing users to wait for the whole response to be generated before it's desplayed to them.
 
 ### Customize for private LLMs: Vector Embeddings local, Open AI for Completion
 
@@ -760,7 +669,7 @@ VectorService.java - check if it's like this:
 
 Test as done before. In the gpu docker logs, you'll see the chunks coming to be embedded.
 
-### Full private LLMs with llama2:7b-chat-fp16
+### Full private LLMs with `llama2:7b-chat-fp16`
 
 DemoaiController.java - uncomment with final source code:
 
@@ -829,7 +738,7 @@ This trade-off in using private LLMs model could be overcome choosing *larger mo
 
 ## 3. Deploy on Oracle Backend for Spring Boot and Microservices
 
-Let's show what Oraclecan offer to deploy on an enterprise grade the GenAI application developed so far.
+Let's show what Oracle can offer to deploy on an enterprise grade the GenAI application developed so far.
 
 The platform [**Oracle Backend for Spring Boot and Microservices**](https://oracle.github.io/microservices-datadriven/spring/) allows developers to build microservices in Spring Boot and provision a backend as a service with the Oracle Database and other infrastructure components that operate on multiple clouds. This service vastly simplifies the task of building, testing, and operating microservices platforms for reliable, secure, and scalable enterprise applications.
 

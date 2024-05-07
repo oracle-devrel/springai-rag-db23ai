@@ -37,6 +37,7 @@ import org.springframework.web.multipart.MultipartFile;
 //CHANGE
 //import org.springframework.ai.ollama.OllamaEmbeddingClient;
 //import org.springframework.ai.ollama.OllamaChatClient;
+import org.springframework.ai.chat.ChatClient;
 
 import com.example.demoai.service.VectorService;
 import com.example.model.MessageDTO;

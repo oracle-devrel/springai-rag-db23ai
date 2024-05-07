@@ -13,7 +13,7 @@ package com.example.demoai;
 
 
 import org.springframework.ai.embedding.EmbeddingClient;
-import org.springframework.ai.openai.OpenAiEmbeddingClient;
+//import org.springframework.ai.openai.OpenAiEmbeddingClient;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
