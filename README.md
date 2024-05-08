@@ -21,8 +21,6 @@ The demo shows a Retrieval-Augmented Generation using the following modules:
     * OLLAMA local LLM embeddings model
     * OLLAMA local LLM LLama2 model for chat
 
-## Introduction
-
 This demo is based on a early draft example of **Spring AI API**'s implementation for the **Oracle 23ai** as vector store, according to the specifications reported here: **[Vector DBs](https://docs.spring.io/spring-ai/reference/api/vectordbs.html)**.
 
 There are two different types of files that contribute to the Retrieval-Augmented Generation (RAG) system in this solution:
@@ -113,7 +111,7 @@ The following tests have also been implemented, to debug and play with the solut
 
     Chat client that doesn't use the RAG pipeline. It could be used as a baseline to show the differences between a response provided by the LLM service as-is (OpenAI, OLLAMA) and an augmented request. It's useful to check if any public content has been used for LLM training, whether the response is near to what you expect, without providing your documents.
 
-## 0. Prerequisites and setup
+## 0. Prerequisites
 
 ### JDBC driver for Oracle DB 23ai
 
@@ -154,26 +152,28 @@ Set env with command in a shell:
     source ./env.sh
     ```
 
-#### DB23ai setup
+## 1. Setup
 
-Download and install from [Oracle Database Free Get Started](https://www.oracle.com/database/free/get-started/) site an **Oracle Database 23ai Free**, for example, as a docker container in this way:
+### Oracle Database 23ai setup
 
-```bash
-docker run -d -p 1521:1521 --name db23ai container-registry.oracle.com/database/free:latest
-docker exec db23ai ./setPassword.sh manager
-```
+1. Download and install from [Oracle Database Free Get Started](https://www.oracle.com/database/free/get-started/) site an **Oracle Database 23ai Free**, for example, as a docker container in this way:
 
-After startup, download and install an Oracle Instant Client from the same [site](https://www.oracle.com/database/free/get-started/), and connect to the instance as shown here:
+    ```bash
+    docker run -d -p 1521:1521 --name db23ai container-registry.oracle.com/database/free:latest
+    docker exec db23ai ./setPassword.sh manager
+    ```
 
-```bash
-sqlplus sys/manager@"${VECTORDB}:1521/FREEPDB1" as sysdba
-```
+2. After startup, download and install an Oracle Instant Client from the same [site](https://www.oracle.com/database/free/get-started/), and connect to the instance as shown here:
 
-If running locally:
+    ```bash
+    sqlplus sys/manager@"${VECTORDB}:1521/FREEPDB1" as sysdba
+    ```
 
-```bash
-sqlplus sys/manager@"localhost:1521/FREEPDB1" as sysdba
-```
+3. If running locally:
+
+    ```bash
+    sqlplus sys/manager@"localhost:1521/FREEPDB1" as sysdba
+    ```
 
 to create a **vector** user to run the example:
 
@@ -552,7 +552,7 @@ The following shape and images are recommended for the server: (it will require 
     ```bash
     docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama serve
     docker exec -it ollama ollama pull nomic-embed-text
-    docker exec -it ollama ollama pull llama2:7b-chat-fp16
+    docker exec -it ollama ollama pull llama2:13b-chat-fp16
     docker logs -f --tail 10 ollama
     ```
 
