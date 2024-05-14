@@ -10,7 +10,7 @@ In this demo, we'll guide you through the process of leveraging Java, Spring Boo
 - Integrate Domain Knowledge from Oracle 23ai: Learn how to connect your Spring Boot application with Oracle's 23ai to access and utilize domain-specific knowledge for more accurate and relevant responses.
 - Transition to Production with Oracle Backend Platform: We'll address the challenges of moving your knowledge management system from development to production using the Oracle Backend Platform for Spring Boot and Microservices.
 
-Check out [demo here](https://youtu.be/XXXXXXX)
+Check out [demo here](https://www.youtube.com/watch?v=H2w6oULzFCo&list=PLPIzp-E1msraY9To-BB-vVzPsK08s4tQD&index=26)
 
 The demo shows a Retrieval-Augmented Generation using the following modules:
 
