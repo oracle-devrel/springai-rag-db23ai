@@ -1,0 +1,11 @@
+DOCUMENTS:
+{documents}
+
+QUESTION:
+{question}
+
+INSTRUCTIONS:
+Answer the users question using the DOCUMENTS text above.
+Keep your answer ground in the facts of the DOCUMENTS.
+If the DOCUMENTS doesn’t contain the facts to answer the QUESTION, return: 
+I'm sorry but I haven't enough information to answer.
