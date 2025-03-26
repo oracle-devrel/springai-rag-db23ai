@@ -30,7 +30,7 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-core</artifactId>
-				<version>1.4.14</version>
+				<version>1.5.13</version>
 			</dependency>
 
 			<!-- Update Jackson to fix CVE-2023-35116 -->
